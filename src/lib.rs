@@ -1,5 +1,7 @@
 use serde::Serialize;
-use serde_json::Value;
+use serde::Deserialize;
+//use serde_json::Value;
+//use serde_json::Result;
 use std::error::Error;
 use std::fs::File;
 use std::fs::OpenOptions;
@@ -9,6 +11,48 @@ use std::io::{BufRead, BufReader};
 pub struct Config {
     pub infile: String,
     pub outfile: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct User {
+    screen_name: Option<String>,
+    location: Option<String>,
+    description: Option<String>,
+    id_str: Option<String>,
+    verified: Option<bool>,
+    followers_count: Option<i32>,
+    friends_count: Option<i32>,
+    listed_count: Option<i32>,
+    favourites_count: Option<i32>,
+    statuses_count: Option<i32>,
+    created_at: Option<String>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Input {
+    text: Option<String>,
+    user: User
+}
+
+#[derive(Serialize, Debug)]
+pub struct Output {
+    text: Option<String>,
+    username: Option<String>,
+    location: Option<String>,
+    verified: Option<bool>,
+    followers_count: Option<i32>
+}
+
+impl From<Input> for Output {
+    fn from(item: Input) -> Output {
+        Output {
+            text: item.text,
+            username: item.user.screen_name,
+            location: item.user.location,
+            verified: item.user.verified,
+            followers_count: item.user.followers_count
+        }
+    }
 }
 
 impl Config {
@@ -34,7 +78,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         .unwrap();
 
     for line in reader.lines() {
-        let v: Value = serde_json::from_str(&line.unwrap())?;
+        let v: Input = serde_json::from_str(&line.unwrap())?;
         let output = Output::from(v);
         let j = serde_json::to_string(&output)?;
 
@@ -42,25 +86,8 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             eprintln!("Couldn't write to file: {}", e);
         }
 
-        println!("{}", j);
+        //println!("{}", j);
     }
 
     Ok(())
-}
-
-#[derive(Serialize, Debug)]
-pub struct Output {
-    date_text: Option<String>,
-    username: Option<String>,
-    id: Option<String>,
-}
-
-impl From<Value> for Output {
-    fn from(item: Value) -> Output {
-        Output {
-            date_text: item["created_at"].as_str().map(String::from),
-            username: item["user"]["name"].as_str().map(String::from),
-            id: item["id_str"].as_str().map(String::from),
-        }
-    }
 }

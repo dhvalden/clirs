@@ -10,8 +10,8 @@ fn main() {
         process::exit(1);
     });
 
-    //println!("Processing {}", config.infile);
-    //println!("Output file {}", config.outfile);
+    println!("Processing {}", config.infile);
+    println!("Output file {}", config.outfile);
 
     if let Err(e) = clirs::run(config) {
         eprintln!("Application error: {}", e);
