@@ -1,7 +1,5 @@
 use serde::Serialize;
 use serde::Deserialize;
-//use serde_json::Value;
-//use serde_json::Result;
 use std::error::Error;
 use std::fs::File;
 use std::fs::OpenOptions;
@@ -57,31 +55,25 @@ pub struct Mention {
     id_str: Option<String>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ExtendedTweet {
     full_text: Option<String>,
 }
 
 impl ExtendedTweet {
     fn full_text(self) -> Option<String> {
-        match self.full_text {
+        match &self.full_text {
             None => None,
-            Some(x) => Some(x.clone()),
+            Some(x) => Some(x.to_string()),
         }
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 struct Status {
     text: Option<String>,
     extended_tweet: Option<ExtendedTweet>,
 }
-
-//impl Status {
-//    fn full_text(self) -> Option<String> {
-//        self.extended_tweet.map(ExtendedTweet::full_text).unwrap_or(self.text.clone())
-//    }
-//}
 
 #[derive(Deserialize, Debug)]
 pub struct Tweet {
@@ -93,25 +85,13 @@ pub struct Tweet {
     reply_count: Option<i32>,
     retweet_count: Option<i32>,
     favorite_count: Option<i32>,
-
-    extended_tweet: Option<ExtendedTweet>,
-    
-    //retweeted_status: Option<Status>,
-    //quoted_status: Option<Status>,
+    extended_tweet: Option<ExtendedTweet>,   
+    retweeted_status: Option<Status>,
+    quoted_status: Option<Status>,
     text: Option<String>,
     source: Option<String>,
     lang: Option<String>,
 }
-
-//impl Tweet {
-//    fn full_text(&self) -> Option<String> {
-//        self.retweeted_status.map(Status::full_text).or_else(|| {
-//            self.quoted_status.map(Status::full_text)
-//        }).or_else(|| {
-//            self.extended_tweet.map(ExtendedTweet::full_text)
-//        }).unwrap_or(Some(self.text.clone()))
-//    }
-//}
 
 #[derive(Serialize, Debug)]
 pub struct Digest {
@@ -132,10 +112,11 @@ pub struct Digest {
     reply_count: Option<i32>,
     retweet_count: Option<i32>,
     favorite_count: Option<i32>,
+    retweeted_status: Option<Status>,
+    quoted_status: Option<Status>,
     hashtags: Option<Vec<Hashtag>>,
     urls: Option<Vec<Url>>,
     user_mentions: Option<Vec<Mention>>,
-    //full_text: Option<String>,
     text: Option<String>,
     extended_text: Option<String>,
     source: Option<String>,
@@ -145,8 +126,6 @@ pub struct Digest {
 impl From<Tweet> for Digest {
     fn from(item: Tweet) -> Digest {
         Digest {
-            //full_text: item.full_text(),
-
             id: item.id_str,
             created_at: item.created_at,
             screen_name: item.user.screen_name,
@@ -164,6 +143,8 @@ impl From<Tweet> for Digest {
             reply_count: item.reply_count,
             retweet_count: item.retweet_count,
             favorite_count: item.favorite_count,
+            retweeted_status: item.retweeted_status,
+            quoted_status: item.quoted_status,
             hashtags: item.entities.hashtags,
             urls: item.entities.urls,
             user_mentions: item.entities.user_mentions,
