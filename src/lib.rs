@@ -26,11 +26,35 @@ pub struct User {
     created_at: Option<String>,
 }
 
+fn default_user() -> User {
+    User {
+        screen_name: None,
+        location: None,
+        description: None,
+        id_str: None,
+        verified: None,
+        followers_count: None,
+        friends_count: None,
+        listed_count: None,
+        favourites_count: None,
+        statuses_count: None,
+        created_at: None,
+    }
+}
+
 #[derive(Deserialize, Debug)]
 pub struct Entities {
     hashtags: Option<Vec<Hashtag>>,
     urls: Option<Vec<Url>>,
     user_mentions: Option<Vec<Mention>>,
+}
+
+fn default_entities() -> Entities {
+    Entities {
+        hashtags: None,
+        urls: None,
+        user_mentions: None,
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -79,8 +103,13 @@ struct Status {
 pub struct Tweet {
     id_str: Option<String>,
     created_at: Option<String>,
+
+    #[serde(default = "default_user")]
     user: User,
+
+    #[serde(default = "default_entities")]
     entities: Entities,
+    
     quote_count: Option<i32>,
     reply_count: Option<i32>,
     retweet_count: Option<i32>,
